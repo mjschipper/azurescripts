@@ -5,4 +5,4 @@ $Conn = Get-AutomationConnection -Name AzureRunAsConnection
 Add-AzureRMAccount -ServicePrincipal -Tenant $Conn.TenantID `
 -ApplicationId $Conn.ApplicationID -CertificateThumbprint $Conn.CertificateThumbprint
 
-Get-AzureRmVm -ResourceGroupName $shutdownResourceGroup | Stop-AzureRmVm
+Get-AzureRmVm -ResourceGroupName $shutdownResourceGroup | Stop-AzureRmVm -Verbose -Force
