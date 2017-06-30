@@ -1,18 +1,23 @@
 #Set variables
+    # $shutdown = $true (this will use the shutdown commands based on the tags set in the varables of Azure)
+    # $shutdown = $false  (this will use the startup commands based on the tags set in the varables of Azure) - The startup commands only starts vms on weekdays and non public holidays.
     $Shutdown = $false
-	$url = "http://data.gov.au/dataset/b1bc6077-dadd-4f61-9f8c-002ab2cdff10/resource/a24ecaf2-044a-4e66-989c-eacc81ded62f/download/australianpublicholidays-201617.csv"
+ 
+    # URL for machine readable Australian public holidays: https://data.gov.au/dataset/australian-holidays-machine-readable-dataset/resource/a24ecaf2-044a-4e66-989c-eacc81ded62f
+    $url = "http://data.gov.au/dataset/b1bc6077-dadd-4f61-9f8c-002ab2cdff10/resource/a24ecaf2-044a-4e66-989c-eacc81ded62f/download/australianpublicholidays-201617.csv"
 
     # get automation variables
     $tagName = Get-AutomationVariable -Name 'startupResourceTagName'
     $tagValue = Get-AutomationVariable -Name 'startupResourceTagValue'
 
+    # Uses the credentials set when setting up your action account.
     $Conn = Get-AutomationConnection -Name AzureRunAsConnection
     Add-AzureRMAccount -ServicePrincipal -Tenant $Conn.TenantID `
     -ApplicationId $Conn.ApplicationID -CertificateThumbprint $Conn.CertificateThumbprint
 
     $day = Get-Date -UFormat "%A"
-	$date = get-date -uformat "%Y%m%d"
-	$pubhol = ForEach($line in (Invoke-RestMethod $url | ConvertFrom-Csv)){if($line."Applicable To" -like "*SA*"){$line.date}}
+    $date = get-date -uformat "%Y%m%d"
+    $pubhol = ForEach($line in (Invoke-RestMethod $url | ConvertFrom-Csv)){if($line."Applicable To" -like "*SA*"){$line.date}}
 
     #Shutdown machines
     $taggedResources = Find-AzureRmResource -TagName $tagName -TagValue $tagValue 
