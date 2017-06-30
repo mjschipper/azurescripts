@@ -15,11 +15,7 @@
     Add-AzureRMAccount -ServicePrincipal -Tenant $Conn.TenantID `
     -ApplicationId $Conn.ApplicationID -CertificateThumbprint $Conn.CertificateThumbprint
 
-    $day = Get-Date -UFormat "%A"
-    $date = get-date -uformat "%Y%m%d"
-    $pubhol = ForEach($line in (Invoke-RestMethod $url | ConvertFrom-Csv)){if($line."Applicable To" -like "*SA*"){$line.date}}
-
-    #Shutdown machines
+    # Tagged machines
     $taggedResources = Find-AzureRmResource -TagName $tagName -TagValue $tagValue 
 
     $targetVms = $taggedResources | Where-Object{$_.ResourceType -eq "Microsoft.Compute/virtualMachines"} | select resourcegroupname, name | Get-AzureRmVM -status
@@ -33,6 +29,9 @@
 		    Stop-AzureRmVm -Name $vm.Name -ResourceGroupName $vm.ResourceGroupName -Force;
 	}
 	elseif($Shutdown -eq $false -and $currentpowerstatus.Code -ne "PowerState/running"){
+ 	$day = Get-Date -UFormat "%A"
+	$date = get-date -uformat "%Y%m%d"
+	$pubhol = ForEach($line in (Invoke-RestMethod $url | ConvertFrom-Csv)){if($line."Applicable To" -like "*SA*"){$line.date}}
         if($day -NotLike "S*day" -and $pubhol -notcontains $date){
 		    Write-Output "Starting $($vm.Name)";		
 		    Start-AzureRmVm -Name $vm.Name -ResourceGroupName $vm.ResourceGroupName;
