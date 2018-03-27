@@ -1,0 +1,43 @@
+#Set variables
+    $Shutdown = $false
+	$url = "https://data.gov.au/dataset/b1bc6077-dadd-4f61-9f8c-002ab2cdff10/resource/253d63c0-af1f-4f4c-b8d5-eb9d9b1d46ab/download/australianpublicholidays-201718.csv"
+
+    # get automation variables
+    $tagName = Get-AutomationVariable -Name 'startupResourceTagName'
+    $tagValue = Get-AutomationVariable -Name 'startupResourceTagValue'
+
+    $Conn = Get-AutomationConnection -Name AzureRunAsConnection
+    Add-AzureRMAccount -ServicePrincipal -Tenant $Conn.TenantID `
+    -ApplicationId $Conn.ApplicationID -CertificateThumbprint $Conn.CertificateThumbprint
+
+    $day = Get-Date -date $(Get-Date).AddHours(9.5) -UFormat "%A"
+	$date = Get-Date -date $(Get-Date).AddHours(9.5) -UFormat "%Y%m%d"
+
+    Write-Output "$($day), $($date)";
+
+    #Shutdown machines
+    $taggedResources = Find-AzureRmResource -TagName $tagName -TagValue $tagValue 
+
+    $targetVms = $taggedResources | Where-Object{$_.ResourceType -eq "Microsoft.Compute/virtualMachines"} | select resourcegroupname, name | Get-AzureRmVM -status
+
+    ForEach ($vm in $targetVms)
+    {
+        $currentpowerstatus = $vm |select -ExpandProperty Statuses | Where-Object{ $_.Code -match "PowerState" } | select Code, DisplayStatus
+ 
+        if($Shutdown -and $currentpowerstatus.Code -eq "PowerState/running"){
+		    Write-Output "Stopping $($vm.Name)";		
+		    Stop-AzureRmVm -Name $vm.Name -ResourceGroupName $vm.ResourceGroupName -Force;
+	}
+	elseif($Shutdown -eq $false -and $currentpowerstatus.Code -ne "PowerState/running"){
+        if($day -NotLike "S*day"){
+            $pubhol = ForEach($line in (Invoke-RestMethod $url | ConvertFrom-Csv)){if($line."Applicable To" -like "*SA*"){$line.date}}
+            if($pubhol -notcontains $date){
+		        Write-Output "Starting $($vm.Name)";		
+		        Start-AzureRmVm -Name $vm.Name -ResourceGroupName $vm.ResourceGroupName;
+            }
+        }  
+	}
+        else {
+            Write-Output "VM $($vm.Name) is already in desired state : $($currentpowerstatus.DisplayStatus)";
+        }
+    }
