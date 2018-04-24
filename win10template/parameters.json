@@ -1,0 +1,42 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "eastus"
+        },
+        "virtualMachineName": {
+            "value": "AZUMGTSVR01"
+        },
+        "virtualMachineSize": {
+            "value": "Standard_DS2_v2_Promo"
+        },
+        "adminUsername": {
+            "value": "vmadmin"
+        },
+        "virtualNetworkName": {
+            "value": "EUS-ARM-PRD-ENV-VN"
+        },
+        "networkInterfaceName": {
+            "value": "EUS-ARM-PRD-ENV-VMNI-AZUMGTSVR01"
+        },
+        "networkSecurityGroupName": {
+            "value": "EUS-ARM-PRD-ENV-VN-NSG-AZUMGTSVR01"
+        },
+        "adminPassword": {
+            "value": null
+        },
+        "subnetName": {
+            "value": "Subnet-PRD-ENV"
+        },
+        "publicIpAddressName": {
+            "value": "EUS-ARM-PRD-ENV-VN-PIP-AZUMGTSVR01"
+        },
+        "publicIpAddressType": {
+            "value": "Dynamic"
+        },
+        "publicIpAddressSku": {
+            "value": "Basic"
+        }
+    }
+}
